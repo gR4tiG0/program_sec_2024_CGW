@@ -51,7 +51,7 @@ def appRoutine(mode: str, frase: str) -> None:
     if not frase:
         logger.error(ERR_PASSPHRASE_NOT_FOUND)
         try:
-            frase = keystore.keys()[0]
+            frase = list(keystore.keys())[0]
         except KeyError:
             logger.error(ERR_EMPTY_PASSPHRASE)
             #if keystore is empty, start with "default"
