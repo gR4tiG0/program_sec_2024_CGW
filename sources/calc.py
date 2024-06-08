@@ -108,7 +108,7 @@ def checkIdentification(user_stats: list[list[float]], stored_stats: tuple[list[
     #table value for t-test, 
 
     # H0: there is no statisticly significant difference between user and stored stats
-    tT = t.ppf(1 - SIG_LEVEL / 2, df = df) #two tailed, one-sample t-test
+    tT = t.ppf(1 - SIG_LEVEL / 2, df = df*2) #two tailed, two-sampled t-test
 
     #short explanation:
     # if we are testing whether the means of two samples are different, 

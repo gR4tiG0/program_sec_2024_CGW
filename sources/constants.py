@@ -15,5 +15,5 @@ ERR_EMPTY_PASSPHRASE = "Empty passphrase, starting with 'default'."             
 ERR_USER_DEN = "User not identified, access denied."                            #error message occurs when user did not pass identification
 
 #constants
-COLLECTION_ATTEMPTS = 3         #number of attempts to collect key press times
+COLLECTION_ATTEMPTS = 5         #number of attempts to collect key press times
 SIG_LEVEL = 0.05                #significance level for hypothesis testing, basicly inferential statistic
