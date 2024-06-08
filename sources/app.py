@@ -12,6 +12,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 def getKeyStore() -> dict:
+    #load keystore from file, if file not found or empty, return empty dict
+    #stores mean and variance for each control phrase in json format
     try:
         with open(FILE_STORE, "r") as file:
             try:
@@ -26,55 +28,65 @@ def getKeyStore() -> dict:
 
 
 def setKeyStore(keystore: dict) -> None:
+    #save keystore to file
     with open(FILE_STORE, "w") as file:
         dump(keystore, file)
 
 
 def appRoutine(mode: str, frase: str) -> None:
+    #main routine of the application
     logger.debug(f"Starting application in {mode} mode.")
     
+    #load keystore
     keystore = getKeyStore()
 
+    #if control phrase not found in keystore, we can't run prod mode, return
     if mode == MODE_PRD:
         if frase not in keystore:
             logger.error(ERR_INVALID_PASSPHRASE)
             return
 
+
+    #if control phrase not provided, use first key in keystore
     if not frase:
         logger.error(ERR_PASSPHRASE_NOT_FOUND)
         try:
-            frase = keystore["control_phrase"]
+            frase = keystore.keys()[0]
         except KeyError:
             logger.error(ERR_EMPTY_PASSPHRASE)
+            #if keystore is empty, start with "default"
             frase = "default"
 
     logger.info(f"Control phrase: {frase}")
 
+    #intialize collector and collect key press times
     collector = Collector(COLLECTION_ATTEMPTS, frase)
     key_press_times = collector.collect()
-    # key_press_times = [[0.1567831039428711, 0.19681215286254883, 0.17332911491394043, 0.17327594757080078, 0.10070300102233887, 0.09225797653198242, 0.09938621520996094], [0.17194509506225586, 0.18021106719970703, 0.18733811378479004, 0.17404890060424805, 0.12795209884643555, 0.12884211540222168, 0.11377215385437012], [0.15682697296142578, 0.19086503982543945, 0.21119379997253418, 0.16853904724121094, 0.12201094627380371, 0.13383913040161133, 0.14722585678100586]]
 
     logger.debug("Key press times collected")
     logger.debug(f"Key press times: {key_press_times}")
 
+    #calculate mean and variance of key press times
     mt, vt = getStatistics(key_press_times, len(key_press_times[0]))
 
     logger.debug("Statistics calculated")
     logger.debug(f"Mean: {mt}")
     logger.debug(f"Variance: {vt}")
 
-    
+    #if learning mode, save mean and variance to keystore and exit
     if mode == MODE_LRN:
         keystore[frase] = {"mean": mt, "variance": vt}
         setKeyStore(keystore)
         logger.info("Keystore saved")
         return
 
-
+    #if production mode, load mean and variance from keystore and check identification
     mt_stored, vt_stored = keystore[frase]["mean"], keystore[frase]["variance"]
 
-    logger.debug(f"{vt_stored = }")
+    
     res = checkIdentification(key_press_times, (mt_stored, vt_stored))
+
+    #print identification result
 
     if res:
         logger.info("User identified, access granted.")
